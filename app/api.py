@@ -1,6 +1,11 @@
+import os
 import dataset
+import asyncio
 from fastapi import FastAPI
+from concurrent.futures import ProcessPoolExecutor
+import glob
 from .recorder import Recorder
+from .concat import make_concat
 
 app = FastAPI()
 running_streams = {}
@@ -21,6 +26,42 @@ async def add_stream(rtsp_url: str, user_id: int, camera_id: int):
 	stream.start()
 	db.close()
 	return {'message': 'success'}
+
+@app.post("/get_stream")
+async def get_stream(user_id: int, camera_id: int, start_timestamp: int, end_timestamp: int):
+	loop = asyncio.get_running_loop()
+	result = await loop.run_in_executor(
+		None,
+		make_concat,
+		user_id,
+		camera_id,
+		start_timestamp,
+		end_timestamp		
+	)
+	if result:
+		return {'message': result}
+	else:
+		return {'message': "error making concat"}
+	
+	
+@app.post("/get_all_stream")
+
+async def get_all_stream(user_id: int, start_timestamp: int, end_timestamp: int):
+	loop = asyncio.get_running_loop()		
+	pool = ProcessPoolExecutor()
+	base_path = f"/tmp/ffmagic/rec/user_{user_id}/camera_*"
+	urls = []
+	for camera in glob.glob(base_path):
+		camera_id = int(os.path.split(camera)[-1].split('_')[1])
+		print(camera_id)
+		tmp = await loop.run_in_executor(
+			pool, make_concat, user_id, camera_id, start_timestamp, end_timestamp
+		)
+		if tmp:
+			urls.append(tmp)
+			
+	return {'message': urls}
+
 
 @app.on_event("startup")
 async def startup_event():

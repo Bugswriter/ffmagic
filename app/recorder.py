@@ -38,7 +38,8 @@ def get_recorder(rtsp_url: str, user_id: int, camera_id: int):
 
 	@ffmpeg.on('progress')
 	def on_progress(progress):
-		print(f"[Camera({camera_id}), User({user_id})]: {progress}")
+		# print(f"[Camera({camera_id}), User({user_id})]: {progress}")
+		pass
 
 	@ffmpeg.on('terminated')
 	def on_terminated():
