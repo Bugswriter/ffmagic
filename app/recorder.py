@@ -5,7 +5,7 @@ from ffmpeg import FFmpeg
 from asyncio.subprocess import Process
 
 def get_recorder(rtsp_url: str, user_id: int, camera_id: int):
-	segment_duration = 30	
+	segment_duration = 60
 	record_path = f"/tmp/ffmagic/rec/user_{user_id}/camera_{camera_id}/%s.mp4"
 	hls_path = f"/tmp/ffmagic/hls/user_{user_id}/camera_{camera_id}/index.m3u8"
 
