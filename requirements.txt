@@ -1,0 +1,4 @@
+fastapi==0.85.0
+python-ffmpeg==1.0.14
+dataset==1.5.2
+uvicorn==0.18.3
