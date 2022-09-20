@@ -6,6 +6,7 @@ from concurrent.futures import ProcessPoolExecutor
 import glob
 from .recorder import Recorder
 from .concat import make_concat
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from .config import *
 
@@ -20,20 +21,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class StreamIn(BaseModel):
+	rtsp_url: str
+	user_id: int
+	camera_id: int
+
 
 def connect_database():
 	return dataset.connect("sqlite:///stream.db")
-	
+
 @app.post("/add_stream")
-async def add_stream(rtsp_url: str, user_id: int, camera_id: int):
+async def add_stream(s: StreamIn):
 	db = connect_database()
 	table = db["streams"]
 	table.insert({
-		"rtsp_url": rtsp_url,
-		"user_id": user_id,
-		"camera_id": camera_id
+		"rtsp_url": s.rtsp_url,
+		"user_id": s.user_id,
+		"camera_id": s.camera_id
 	})
-	stream = Recorder(rtsp_url, user_id, camera_id)
+	stream = Recorder(s.rtsp_url, s.user_id, s.camera_id)
 	stream.start()
 	db.close()
 	return {'message': 'success'}
