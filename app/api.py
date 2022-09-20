@@ -6,9 +6,19 @@ from concurrent.futures import ProcessPoolExecutor
 import glob
 from .recorder import Recorder
 from .concat import make_concat
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 running_streams = {}
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 def connect_database():
 	return dataset.connect("sqlite:///stream.db")
