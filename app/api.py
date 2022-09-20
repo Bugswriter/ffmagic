@@ -7,6 +7,7 @@ import glob
 from .recorder import Recorder
 from .concat import make_concat
 from fastapi.middleware.cors import CORSMiddleware
+from .config import *
 
 app = FastAPI()
 running_streams = {}
@@ -59,7 +60,7 @@ async def get_stream(user_id: int, camera_id: int, start_timestamp: int, end_tim
 async def get_all_stream(user_id: int, start_timestamp: int, end_timestamp: int):
 	loop = asyncio.get_running_loop()		
 	pool = ProcessPoolExecutor()
-	base_path = f"/tmp/ffmagic/rec/user_{user_id}/camera_*"
+	base_path = f"{STORAGE_DIR}/rec/user_{user_id}/camera_*"
 	urls = []
 	for camera in glob.glob(base_path):
 		camera_id = int(os.path.split(camera)[-1].split('_')[1])

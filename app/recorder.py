@@ -3,11 +3,12 @@ import asyncio
 import typing
 from ffmpeg import FFmpeg
 from asyncio.subprocess import Process
+from .config import *
 
 def get_recorder(rtsp_url: str, user_id: int, camera_id: int):
 	segment_duration = 60
-	record_path = f"/tmp/ffmagic/rec/user_{user_id}/camera_{camera_id}/%s.mp4"
-	hls_path = f"/tmp/ffmagic/hls/user_{user_id}/camera_{camera_id}/index.m3u8"
+	record_path = f"{STORAGE_DIR}/rec/user_{user_id}/camera_{camera_id}/%s.mp4"
+	hls_path = f"{STORAGE_DIR}/hls/user_{user_id}/camera_{camera_id}/index.m3u8"
 
 	os.makedirs(record_path[:-7], exist_ok=True)
 	os.makedirs(hls_path[:-11], exist_ok=True)

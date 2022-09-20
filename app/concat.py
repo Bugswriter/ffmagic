@@ -1,6 +1,7 @@
 import os
 import subprocess
 import glob
+from .config import *
 
 def make_concat_file(base_path: str, start: int, end: int):
 	videos_path =  base_path + "/*.mp4"
@@ -28,7 +29,7 @@ def make_concat_stream(base_path):
 	
 
 def make_concat(user_id: int, camera_id: int, start: int, end: int):
-	base_path = f"/tmp/ffmagic/rec/user_{user_id}/camera_{camera_id}"
+	base_path = f"{STORAGE_DIR}/rec/user_{user_id}/camera_{camera_id}"
 	make_concat_file(base_path, start, end)
 	if make_concat_stream(base_path) == 0:
 		return f"/rec/user_{user_id}/camera_{camera_id}/stream.mp4"
