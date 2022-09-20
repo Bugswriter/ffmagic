@@ -61,15 +61,15 @@ async def get_all_stream(user_id: int, start_timestamp: int, end_timestamp: int)
 	loop = asyncio.get_running_loop()		
 	pool = ProcessPoolExecutor()
 	base_path = f"{STORAGE_DIR}/rec/user_{user_id}/camera_*"
-	urls = []
+	urls = {}
 	for camera in glob.glob(base_path):
 		camera_id = int(os.path.split(camera)[-1].split('_')[1])
 		print(camera_id)
-		tmp = await loop.run_in_executor(
+		url = await loop.run_in_executor(
 			pool, make_concat, user_id, camera_id, start_timestamp, end_timestamp
 		)
 		if tmp:
-			urls.append(tmp)
+			urls[camera_id] = url
 			
 	return {'message': urls}
 
