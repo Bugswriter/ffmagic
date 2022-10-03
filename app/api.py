@@ -1,15 +1,13 @@
-import os
 import dataset
-import asyncio
 from fastapi import FastAPI
-from concurrent.futures import ProcessPoolExecutor
-import glob
 from .recorder import Recorder
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from .config import *
 
 app = FastAPI()
+app.mount('/static', StaticFiles(directory="static"), name="static")
 running_streams = {}
 
 app.add_middleware(

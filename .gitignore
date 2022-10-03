@@ -2,3 +2,4 @@ notes.txt
 env/
 *db
 __pycache__/
+static/
