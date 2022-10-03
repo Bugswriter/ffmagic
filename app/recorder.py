@@ -6,7 +6,6 @@ from asyncio.subprocess import Process
 from .config import *
 
 def get_recorder(rtsp_url: str, user_id: int, camera_id: int):
-	segment_duration = 60
 	record_path = f"{STORAGE_DIR}/rec/user_{user_id}/camera_{camera_id}"
 	hls_path = f"{STORAGE_DIR}/hls/user_{user_id}/camera_{camera_id}"
 
@@ -26,7 +25,7 @@ def get_recorder(rtsp_url: str, user_id: int, camera_id: int):
 		{"codec:v": "copy"},
 		an=None,
 		f="segment",
-		segment_time=segment_duration,
+		segment_time=SEGMENT_DURATION,
 		segment_atclocktime=1,
 		reset_timestamps=1,
 		strftime=1
