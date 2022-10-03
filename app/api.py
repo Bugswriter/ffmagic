@@ -1,3 +1,4 @@
+import os
 import dataset
 from fastapi import FastAPI
 from .recorder import Recorder
@@ -7,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from .config import *
 
 app = FastAPI()
+os.makedirs(f"{STORAGE_DIR}", exist_ok=True)
 app.mount('/static', StaticFiles(directory=STORAGE_DIR), name="static")
 running_streams = {}
 
