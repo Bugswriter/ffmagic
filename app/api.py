@@ -1,4 +1,3 @@
-import os
 import dataset
 from fastapi import FastAPI
 from .recorder import Recorder
@@ -8,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from .config import *
 
 app = FastAPI()
-app.mount('/static', StaticFiles(directory=f"{os.getcwd()}/static"), name="static")
+app.mount('/static', StaticFiles(directory=STORAGE_DIR), name="static")
 running_streams = {}
 
 app.add_middleware(
