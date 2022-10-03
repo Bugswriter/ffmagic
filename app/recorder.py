@@ -7,18 +7,22 @@ from .config import *
 
 def get_recorder(rtsp_url: str, user_id: int, camera_id: int):
 	segment_duration = 60
-	record_path = f"{STORAGE_DIR}/rec/user_{user_id}/camera_{camera_id}/%s.mp4"
-	hls_path = f"{STORAGE_DIR}/hls/user_{user_id}/camera_{camera_id}/index.m3u8"
+	record_path = f"{STORAGE_DIR}/rec/user_{user_id}/camera_{camera_id}"
+	hls_path = f"{STORAGE_DIR}/hls/user_{user_id}/camera_{camera_id}"
 
-	os.makedirs(record_path[:-7], exist_ok=True)
-	os.makedirs(hls_path[:-11], exist_ok=True)
+	record_filepath = record_path + "/%s.mp4"
+	index_path = hls_path + "/index.m3u8"
+	segments_path = hls_path + "/segment_%01d.ts"
+
+	os.makedirs(record_path, exist_ok=True)
+	os.makedirs(hls_path, exist_ok=True)
 	
 	ffmpeg = FFmpeg().option('y').input(
 		rtsp_url,
 		rtsp_transport='tcp',
 		rtsp_flags="prefer_tcp"
 	).output(
-		record_path,
+		record_filepath,
 		{"codec:v": "copy"},
 		an=None,
 		f="segment",
@@ -27,15 +31,17 @@ def get_recorder(rtsp_url: str, user_id: int, camera_id: int):
 		reset_timestamps=1,
 		strftime=1
 	).output(
-		hls_path,
-		hls_list_size=4,
+		index_path,
+		hls_list_size=5,
+		hls_flags="delete_segments",		
+		hls_segment_filename=segments_path,
 		tune="zerolatency",
 		hls_allow_cache=0
 	)
 	
 	@ffmpeg.on('stderr')
 	def on_stderr(error):
-		pass
+		print(error)
 
 	@ffmpeg.on('progress')
 	def on_progress(progress):

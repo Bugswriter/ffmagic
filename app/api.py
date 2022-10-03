@@ -5,7 +5,6 @@ from fastapi import FastAPI
 from concurrent.futures import ProcessPoolExecutor
 import glob
 from .recorder import Recorder
-from .concat import make_concat
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from .config import *
@@ -26,65 +25,50 @@ class StreamIn(BaseModel):
 	user_id: int
 	camera_id: int
 
-
 def connect_database():
 	return dataset.connect("sqlite:///stream.db")
 
+@app.post("/list_stream")
+async def list_stream():
+	camera_ids = []
+	for key, _ in running_streams.items():
+		camera_ids.append(key)
+		
+	return camera_ids
+
 @app.post("/add_stream")
-async def add_stream(s: StreamIn):
+async def add_stream(_stream: StreamIn):
+	""" Adding new rtsp stream into database and start recording """
 	db = connect_database()
 	table = db["streams"]
 	table.insert({
-		"rtsp_url": s.rtsp_url,
-		"user_id": s.user_id,
-		"camera_id": s.camera_id
+		"rtsp_url": _stream.rtsp_url,
+		"user_id": _stream.user_id,
+		"camera_id": _stream.camera_id
 	})
-	stream = Recorder(s.rtsp_url, s.user_id, s.camera_id)
+	stream = Recorder(_stream.rtsp_url, _stream.user_id, _stream.camera_id)
 	stream.start()
+	running_streams[_stream.camera_id] = stream
 	db.close()
 	return {'message': 'success'}
 
-@app.post("/get_stream")
-async def get_stream(user_id: int, camera_id: int, start_timestamp: int, end_timestamp: int):
-	loop = asyncio.get_running_loop()
-	result = await loop.run_in_executor(
-		None,
-		make_concat,
-		user_id,
-		camera_id,
-		start_timestamp,
-		end_timestamp		
-	)
-	if result:
-		return {'message': result}
-	else:
-		return {'message': "error making concat"}
+@app.post("/remove_stream")
+async def remove_stream(_camera_id: int):
+	""" Stop stream process and remove from database """
+	db = connect_database()
+	table = db["streams"]
+	table.delete(camera_id=_camera_id)
+	stream = running_streams.get(_camera_id)
+	if stream:
+		stream.stop()
+	db.close()
+	return {'message': 'success'}
 	
-	
-@app.post("/get_all_stream")
-
-async def get_all_stream(user_id: int, start_timestamp: int, end_timestamp: int):
-	loop = asyncio.get_running_loop()		
-	pool = ProcessPoolExecutor()
-	base_path = f"{STORAGE_DIR}/rec/user_{user_id}/camera_*"
-	urls = {}
-	for camera in glob.glob(base_path):
-		camera_id = int(os.path.split(camera)[-1].split('_')[1])
-		print(camera_id)
-		url = await loop.run_in_executor(
-			pool, make_concat, user_id, camera_id, start_timestamp, end_timestamp
-		)
-		if tmp:
-			urls[camera_id] = url
-			
-	return {'message': urls}
-
-
 @app.on_event("startup")
 async def startup_event():
 	db = connect_database()
 	for stream in db["streams"]:
-		key = stream["user_id"] + stream["camera_id"]
+		key = stream["camera_id"]
 		running_streams[key] = Recorder(
 			stream["rtsp_url"],
 			stream["user_id"],
